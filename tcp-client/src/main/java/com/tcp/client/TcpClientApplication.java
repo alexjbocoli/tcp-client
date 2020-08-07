@@ -9,10 +9,15 @@ import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.UnknownHostException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -41,6 +46,8 @@ import com.tcp.client.utils.CRC8;
 @SpringBootApplication
 public class TcpClientApplication {
 	
+	static File log = new File("LOG_CLIENT.txt");
+	
 	/**
 	 * Método principal
 	 * @param args
@@ -60,11 +67,31 @@ public class TcpClientApplication {
 		// Configurações da janela
 		JFrame window = new JFrame();
 		window.setResizable(false);
-		window.setLayout(new GridLayout(4,1));
+		window.setLayout(new GridLayout(5,1));
 		window.setTitle("Cliente TCP");
 	    window.setBounds(0, 0, screenSize.width/2, screenSize.height - screenSize.height/3);
 	    window.setLocation(screenSize.width/4, screenSize.height/5);
 	    window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	    
+	    // Painel 0: configuração de ip e porta
+	    JPanel panel0 = new JPanel();
+	    panel0.setLayout(new BoxLayout(panel0, BoxLayout.Y_AXIS));
+	    JLabel label0 = new JLabel("Configurações de IP e porta");
+	    label0.setAlignmentX(Component.CENTER_ALIGNMENT);
+	    panel0.add(label0);
+	    window.add(panel0);
+	    
+	    JPanel panelConfig = new JPanel();
+	    panelConfig.setLayout(new FlowLayout());
+	    JLabel labelIp = new JLabel("IP: ");
+	    panelConfig.add(labelIp);
+	    JTextField editIp = new JTextField("127.0.0.1", 16);
+	    panelConfig.add(editIp);
+	    JLabel labelPort = new JLabel("Porta: ");
+	    panelConfig.add(labelPort);
+	    JTextField editPort = new JTextField("6666", 4);
+	    panelConfig.add(editPort);
+	    panel0.add(panelConfig);
 	    
 	    // Painel 1: mensagem de texto
 	    JPanel panel1 = new JPanel();
@@ -168,6 +195,22 @@ public class TcpClientApplication {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				if (editIp.getText().equals("")) {
+					setWarningMessage("Informe o IP do servidor!");
+					return;
+				}
+				
+				if (editPort.getText().equals("")) {
+					setWarningMessage("Informe a porta de conexão!");
+					return;
+				}
+				else {
+					if (isInteger(editPort.getText()) == false) {
+						setErrorMessage("A porta de conexão precisa ser um valor numérico!");
+						return;
+					}
+				}
+				
 				if (editMsg.getText().equals("")){
 					setWarningMessage("Informe uma mensagem!");
 					return;
@@ -175,7 +218,7 @@ public class TcpClientApplication {
 				
 				// Procedimento de envio de mensagem
 				try {
-					textMessage(editMsg.getText(), textLog);
+					textMessage(editMsg.getText(), textLog, editIp.getText(), Integer.parseInt(editPort.getText()));
 				} catch (ClassNotFoundException | IOException e1) {
 					e1.printStackTrace();
 				}
@@ -187,6 +230,22 @@ public class TcpClientApplication {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				if (editIp.getText().equals("")) {
+					setWarningMessage("Informe o IP do servidor!");
+					return;
+				}
+				
+				if (editPort.getText().equals("")) {
+					setWarningMessage("Informe a porta de conexão!");
+					return;
+				}
+				else {
+					if (isInteger(editPort.getText()) == false) {
+						setErrorMessage("A porta de conexão precisa ser um valor numérico!");
+						return;
+					}
+				}
+				
 				if (editName.getText().equals("")){
 					setWarningMessage("Informe o nome do usuário!");
 					return;
@@ -228,7 +287,7 @@ public class TcpClientApplication {
 				// Procedimento de envio de mensagem
 				try {
 					userMessage(editName.getText(), Integer.parseInt(editAge.getText()), Integer.parseInt(editWeight.getText()), 
-						Integer.parseInt(editHeight.getText()), textLog);
+						Integer.parseInt(editHeight.getText()), textLog, editIp.getText(), Integer.parseInt(editPort.getText()));
 				} catch (NumberFormatException | ClassNotFoundException | IOException e1) {
 					e1.printStackTrace();
 				}
@@ -240,6 +299,22 @@ public class TcpClientApplication {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				if (editIp.getText().equals("")) {
+					setWarningMessage("Informe o IP do servidor!");
+					return;
+				}
+				
+				if (editPort.getText().equals("")) {
+					setWarningMessage("Informe a porta de conexão!");
+					return;
+				}
+				else {
+					if (isInteger(editPort.getText()) == false) {
+						setErrorMessage("A porta de conexão precisa ser um valor numérico!");
+						return;
+					}
+				}
+				
 				if (editTimezone.getText().equals("")){
 					setWarningMessage("Informe um fuso horário! \nEx: America/Sao_Paulo");
 					return;
@@ -247,7 +322,7 @@ public class TcpClientApplication {
 				
 				// Procedimento de envio de mensagem
 				try {
-					dateTimeMessage(editTimezone.getText(), textLog);
+					dateTimeMessage(editTimezone.getText(), textLog, editIp.getText(), Integer.parseInt(editPort.getText()));
 				} catch (ClassNotFoundException | IOException e1) {
 					e1.printStackTrace();
 				}
@@ -295,6 +370,19 @@ public class TcpClientApplication {
 	}
 	
 	/**
+	 * Escreve os logs em arquivo
+	 * @param writer o objeto responsável por escrever no arquivo
+	 * @param text o texto a ser escrito
+	 * @throws IOException
+	 */
+	public static void logWriter(FileWriter writer, String text) throws IOException {		
+		Date dateTime = new Date();
+		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		
+		writer.write(dateFormat.format(dateTime) + ": " + text);
+	}
+	
+	/**
 	 * Rotina de envio de uma mensagem de texto
 	 * @param textMsg a mensagem a ser enviada
 	 * @param textLog o log da aplicação
@@ -302,15 +390,21 @@ public class TcpClientApplication {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public static void textMessage(String textMsg, JTextArea textLog) throws UnknownHostException, IOException, ClassNotFoundException {
+	public static void textMessage(String textMsg, JTextArea textLog, String ip, int port) throws UnknownHostException, IOException, ClassNotFoundException {
+		FileWriter writer = new FileWriter(log, true);
+		
 		// Limpa o LOG
 		textLog.setText(null);
 		
 		// Instancia o cliente e solicita conexão com o servidor
 		Client client1 = new Client();
-		client1.startConnection("127.0.0.1", 6666);
+		client1.startConnection(ip, port);
 		
-		textLog.append("Enviando mensagem de texto '" + textMsg + "'...\n");
+		logWriter(writer, "Conexão estabelecida com o servidor.\n");
+		logWriter(writer, "IP: " + ip + " / Porta:" + port + "\n");
+		
+		textLog.append("Convertendo mensagem de texto '" + textMsg + "'...\n");
+		logWriter(writer, "Convertendo mensagem de texto '" + textMsg + "'...\n");
 		
 		// Conversão da mensagem em hexadecimal
 		String hexMsg = String.format("%x", new BigInteger(1, textMsg.getBytes("UTF-8")));
@@ -334,10 +428,13 @@ public class TcpClientApplication {
 		String hexCrc = Integer.toHexString((int) crc8.getValue());
 		textLog.append("CRC calculado (dec): " + crc8.getValue() + "\n");
 		textLog.append("CRC calculado (hex): " + hexCrc + "\n");
+		logWriter(writer, "CRC calculado (dec): " + crc8.getValue() + "\n");
+		logWriter(writer, "CRC calculado (hex): " + hexCrc + "\n");
 		
 		// Protocolo enviado e recebimento da resposta
 		String protocol = "0A" + bytesHex + "A1" + hexMsg + hexCrc + "0D";
-		textLog.append("Enviando protocolo '" + protocol + "'...\n");
+		textLog.append("Enviando protocolo '" + protocol + "' ao servidor...\n");
+		logWriter(writer, "Enviando protocolo '" + protocol + "' ao servidor...\n");
 		String response = client1.sendMessage(protocol);
 		
 		// Conversão da mensagem recebida de string para array
@@ -362,12 +459,22 @@ public class TcpClientApplication {
 		
 		if (hexCrc.equals("0")) {
 			textLog.append("\nResposta recebida sem erros: " + response + "\n");
+			logWriter(writer, "Resposta recebida sem erros: " + response + "\n");
 		}
 		else {
-			textLog.append("\nResposta recebida com erros!\n");	
+			textLog.append("\nResposta recebida com erros!\n");
+			logWriter(writer, "Resposta recebida com erros!\n");
 		}
 		textLog.append("CRC calculado (dec): " + crc8.getValue() + "\n");
 		textLog.append("CRC calculado (hex): " + hexCrc + "\n");
+		logWriter(writer, "CRC calculado (dec): " + crc8.getValue() + "\n");
+		logWriter(writer, "CRC calculado (hex): " + hexCrc + "\n");
+		
+		if (log.exists()) {
+			writer.write("\n");
+		}
+		
+		writer.close();
 	}
 	
 	/**
@@ -381,15 +488,21 @@ public class TcpClientApplication {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public static void userMessage(String userName, int userAge, int userWeight, int userHeight, JTextArea textLog) throws UnknownHostException, IOException, ClassNotFoundException {
+	public static void userMessage(String userName, int userAge, int userWeight, int userHeight, JTextArea textLog, String ip, int port) throws UnknownHostException, IOException, ClassNotFoundException {
+		FileWriter writer = new FileWriter(log, true);
+		
 		// Limpa o LOG
 		textLog.setText(null);
 		
 		// Instancia o cliente e solicita conexão com o servidor
 		Client client2 = new Client();
-		client2.startConnection("127.0.0.1", 6666);
+		client2.startConnection(ip, port);
 		
-		textLog.append("Enviando informações de usuário '" + userName + ", " + userAge + " anos, " + userWeight + " Kg, " + userHeight + " cm'...\n");
+		logWriter(writer, "Conexão estabelecida com o servidor.\n");
+		logWriter(writer, "IP: " + ip + " / Porta:" + port + "\n");
+		
+		textLog.append("Codificando informações de usuário '" + userName + ", " + userAge + " anos, " + userWeight + " Kg, " + userHeight + " cm'...\n");
+		logWriter(writer, "Codificando informações de usuário '" + userName + ", " + userAge + " anos, " + userWeight + " Kg, " + userHeight + " cm'...\n");
 		
 		// Preparação da mensagem
 		String hexAge = Integer.toHexString(userAge);
@@ -422,10 +535,13 @@ public class TcpClientApplication {
 		String hexCrc = Integer.toHexString((int) crc8.getValue());
 		textLog.append("CRC calculado (dec): " + crc8.getValue() + "\n");
 		textLog.append("CRC calculado (hex): " + hexCrc + "\n");
+		logWriter(writer, "CRC calculado (dec): " + crc8.getValue() + "\n");
+		logWriter(writer, "CRC calculado (hex): " + hexCrc + "\n");		
 		
 		// Protocolo enviado e recebimento da resposta
 		String protocol = "0A" + bytesHex + "A2" + hexData + hexCrc + "0D";
-		textLog.append("Enviando protocolo '" + protocol + "'...\n");
+		textLog.append("Enviando protocolo '" + protocol + "' ao servidor...\n");
+		logWriter(writer, "Enviando protocolo '" + protocol + "' ao servidor...\n");
 		String response = client2.sendMessage(protocol);
 		
 		// Conversão da mensagem recebida de string para array
@@ -450,12 +566,22 @@ public class TcpClientApplication {
 		
 		if (hexCrc.equals("0")) {
 			textLog.append("\nResposta recebida sem erros: " + response + "\n");
+			logWriter(writer, "\nResposta recebida sem erros: " + response + "\n");
 		}
 		else {
 			textLog.append("\nResposta recebida com erros!\n");
+			logWriter(writer, "Resposta recebida com erros!\n");
 		}
 		textLog.append("CRC calculado (dec): " + crc8.getValue() + "\n");
 		textLog.append("CRC calculado (hex): " + hexCrc + "\n");
+		logWriter(writer, "CRC calculado (dec): " + crc8.getValue() + "\n");
+		logWriter(writer, "CRC calculado (hex): " + hexCrc + "\n");
+		
+		if (log.exists()) {
+			writer.write("\n");
+		}
+		
+		writer.close();
 	}
 	
 	/**
@@ -466,15 +592,21 @@ public class TcpClientApplication {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public static void dateTimeMessage(String timezoneMsg, JTextArea textLog) throws UnknownHostException, IOException, ClassNotFoundException {
+	public static void dateTimeMessage(String timezoneMsg, JTextArea textLog, String ip, int port) throws UnknownHostException, IOException, ClassNotFoundException {
+		FileWriter writer = new FileWriter(log, true);
+		
 		// Limpa o LOG
 		textLog.setText(null);
 		
 		// Instancia o cliente e solicita conexão com o servidor
 		Client client3 = new Client();
-		client3.startConnection("127.0.0.1", 6666);
+		client3.startConnection(ip, port);
 		
-		textLog.append("Enviando solicitação de data e hora no fuso horário '" + timezoneMsg + "'...\n");
+		logWriter(writer, "Conexão estabelecida com o servidor.\n");
+		logWriter(writer, "IP: " + ip + " / Porta:" + port + "\n");
+		
+		textLog.append("Codificando o fuso horário '" + timezoneMsg + "'...\n");
+		logWriter(writer, "Codificando o fuso horário '" + timezoneMsg + "'...\n");
 		
 		// Conversão da mensagem em hexadecimal
 		String hexTimezone = String.format("%x", new BigInteger(1, timezoneMsg.getBytes("UTF-8")));
@@ -498,10 +630,13 @@ public class TcpClientApplication {
 		String hexCrc = Integer.toHexString((int) crc8.getValue());
 		textLog.append("CRC calculado (dec): " + crc8.getValue() + "\n");
 		textLog.append("CRC calculado (hex): " + hexCrc + "\n");
+		logWriter(writer, "CRC calculado (dec): " + crc8.getValue() + "\n");
+		logWriter(writer, "CRC calculado (hex): " + hexCrc + "\n");
 		
 		// Protocolo enviado e recebimento da resposta
 		String protocol = "0A" + bytesHex + "A3" + hexTimezone + hexCrc + "0D";
-		textLog.append("Enviando protocolo '" + protocol + "'...\n");
+		textLog.append("Enviando protocolo '" + protocol + "' ao servidor...\n");
+		logWriter(writer, "Enviando protocolo '" + protocol + "' ao servidor...\n");
 		String response = client3.sendMessage(protocol);
 		
 		// Se a resposta for um ACK, significa que o fuso consultado não consta na tabela de fusos horários
@@ -529,12 +664,19 @@ public class TcpClientApplication {
 			if (hexCrc.equals("0")) {
 				textLog.append("\nResposta recebida sem erros: " + response + "\n");
 				textLog.append("O fuso horário requisitado não existe!\n");
+				logWriter(writer, "Resposta recebida sem erros: " + response + "\n");
+				logWriter(writer, "O fuso horário requisitado não existe!\n");
 			}
 			else {
 				textLog.append("\nResposta recebida com erros!\n");
+				logWriter(writer, "\nResposta recebida com erros!\n");
 			}
 			textLog.append("CRC calculado (dec): " + crc8.getValue() + "\n");
 			textLog.append("CRC calculado (hex): " + hexCrc + "\n");
+			logWriter(writer, "CRC calculado (dec): " + crc8.getValue() + "\n");
+			logWriter(writer, "CRC calculado (hex): " + hexCrc + "\n");
+			
+			writer.close();
 			
 			return;
 		}
@@ -571,11 +713,23 @@ public class TcpClientApplication {
 			textLog.append("\nResposta recebida sem erros: " + response + "\n");
 			textLog.append("Data e hora no fuso " + timezoneMsg + ": " 
 				+ day + "/" + month + "/" + year + " " + hour + ":" + minute + ":" + second + "\n");
+			logWriter(writer, "Resposta recebida sem erros: " + response + "\n");
+			logWriter(writer, "Data e hora no fuso " + timezoneMsg + ": " 
+				+ day + "/" + month + "/" + year + " " + hour + ":" + minute + ":" + second + "\n");
 		}
 		else {
 			textLog.append("\nResposta recebida com erros!\n");
+			logWriter(writer, "Resposta recebida com erros!\n");
 		}
 		textLog.append("CRC calculado (dec): " + crc8.getValue() + "\n");
 		textLog.append("CRC calculado (hex): " + hexCrc + "\n");
+		logWriter(writer, "CRC calculado (dec): " + crc8.getValue() + "\n");
+		logWriter(writer, "CRC calculado (hex): " + hexCrc + "\n");
+		
+		if (log.exists()) {
+			writer.write("\n");
+		}
+		
+		writer.close();
 	}
 }

@@ -33,9 +33,18 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import com.tcp.client.controllers.Client;
 import com.tcp.client.utils.CRC8;
 
+/**
+ * Classe principal do cliente
+ * @author Alex Juno Bócoli
+ *
+ */
 @SpringBootApplication
 public class TcpClientApplication {
 	
+	/**
+	 * Método principal
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		SpringApplication.run(TcpClientApplication.class, args);
 		
@@ -248,6 +257,10 @@ public class TcpClientApplication {
 		window.setVisible(true);	
 	}
 	
+	/**
+	 * Define uma mensagem de alerta
+	 * @param text o texto da mensagem de alerta
+	 */
 	public static void setWarningMessage(String text) {
 	    JOptionPane optionPane = new JOptionPane(text,JOptionPane.WARNING_MESSAGE);
 	    JDialog dialog = optionPane.createDialog("Atenção");
@@ -255,6 +268,10 @@ public class TcpClientApplication {
 	    dialog.setVisible(true);
 	}
 	
+	/**
+	 * Define uma mensagem de erro
+	 * @param text o texto da mensagem de erro
+	 */
 	public static void setErrorMessage(String text) {
 	    JOptionPane optionPane = new JOptionPane(text,JOptionPane.ERROR_MESSAGE);
 	    JDialog dialog = optionPane.createDialog("Erro");
@@ -262,6 +279,11 @@ public class TcpClientApplication {
 	    dialog.setVisible(true);
 	}
 	
+	/**
+	 * Verifica se o texto é um valor numérico
+	 * @param s o texto informado no JTextField
+	 * @return true ou false
+	 */
 	public static boolean isInteger(String s) {
 	    try { 
 	        Integer.parseInt(s); 
@@ -272,6 +294,14 @@ public class TcpClientApplication {
 	    return true;
 	}
 	
+	/**
+	 * Rotina de envio de uma mensagem de texto
+	 * @param textMsg a mensagem a ser enviada
+	 * @param textLog o log da aplicação
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
 	public static void textMessage(String textMsg, JTextArea textLog) throws UnknownHostException, IOException, ClassNotFoundException {
 		// Limpa o LOG
 		textLog.setText(null);
@@ -332,11 +362,25 @@ public class TcpClientApplication {
 		
 		if (hexCrc.equals("0")) {
 			textLog.append("\nResposta recebida sem erros: " + response + "\n");
-			textLog.append("CRC calculado (dec): " + crc8.getValue() + "\n");
-			textLog.append("CRC calculado (hex): " + hexCrc + "\n");
 		}
+		else {
+			textLog.append("\nResposta recebida com erros!\n");	
+		}
+		textLog.append("CRC calculado (dec): " + crc8.getValue() + "\n");
+		textLog.append("CRC calculado (hex): " + hexCrc + "\n");
 	}
 	
+	/**
+	 * Rotina de envio das informações do usuário
+	 * @param userName o nome do usuário
+	 * @param userAge a idade do usuário
+	 * @param userWeight o peso do usuário
+	 * @param userHeight a altura do usuário
+	 * @param textLog o log da aplicação
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
 	public static void userMessage(String userName, int userAge, int userWeight, int userHeight, JTextArea textLog) throws UnknownHostException, IOException, ClassNotFoundException {
 		// Limpa o LOG
 		textLog.setText(null);
@@ -406,11 +450,22 @@ public class TcpClientApplication {
 		
 		if (hexCrc.equals("0")) {
 			textLog.append("\nResposta recebida sem erros: " + response + "\n");
-			textLog.append("CRC calculado (dec): " + crc8.getValue() + "\n");
-			textLog.append("CRC calculado (hex): " + hexCrc + "\n");
 		}
+		else {
+			textLog.append("\nResposta recebida com erros!\n");
+		}
+		textLog.append("CRC calculado (dec): " + crc8.getValue() + "\n");
+		textLog.append("CRC calculado (hex): " + hexCrc + "\n");
 	}
 	
+	/**
+	 * Rotina de solicitação de data e hora
+	 * @param timezoneMsg o fuso horário informado
+	 * @param textLog o log da aplicação
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
 	public static void dateTimeMessage(String timezoneMsg, JTextArea textLog) throws UnknownHostException, IOException, ClassNotFoundException {
 		// Limpa o LOG
 		textLog.setText(null);
@@ -449,6 +504,41 @@ public class TcpClientApplication {
 		textLog.append("Enviando protocolo '" + protocol + "'...\n");
 		String response = client3.sendMessage(protocol);
 		
+		// Se a resposta for um ACK, significa que o fuso consultado não consta na tabela de fusos horários
+		if (response.equals("0A05A0280D")) {
+			// Conversão da mensagem recebida de string para array
+			ArrayList<String> hexResArray = new ArrayList<String>();
+			for (String hex: response.replaceAll( "..(?!$)", "$0," ).split( "," ) ) {
+				hexResArray.add(hex);
+			}
+			
+			// Construção da string para cálculo do CRC (bytes, frame, crc)
+			crcCalc = "";
+			for (int i = 1; i <= 3; i++) {
+				crcCalc = crcCalc + hexResArray.get(i);
+			}
+			
+			// Conversão em array de bytes para cálculo do CRC
+			crcCalcBytes = DatatypeConverter.parseHexBinary(crcCalc);
+			
+			// Cálculo do CRC
+			crc8.reset();
+			crc8.update(crcCalcBytes);
+			hexCrc = Integer.toHexString((int) crc8.getValue());
+			
+			if (hexCrc.equals("0")) {
+				textLog.append("\nResposta recebida sem erros: " + response + "\n");
+				textLog.append("O fuso horário requisitado não existe!\n");
+			}
+			else {
+				textLog.append("\nResposta recebida com erros!\n");
+			}
+			textLog.append("CRC calculado (dec): " + crc8.getValue() + "\n");
+			textLog.append("CRC calculado (hex): " + hexCrc + "\n");
+			
+			return;
+		}
+		
 		// Conversão da mensagem recebida de string para array
 		ArrayList<String> hexResArray = new ArrayList<String>();
 		for (String hex: response.replaceAll( "..(?!$)", "$0," ).split( "," ) ) {
@@ -479,10 +569,13 @@ public class TcpClientApplication {
 		
 		if (hexCrc.equals("0")) {
 			textLog.append("\nResposta recebida sem erros: " + response + "\n");
-			textLog.append("CRC calculado (dec): " + crc8.getValue() + "\n");
-			textLog.append("CRC calculado (hex): " + hexCrc + "\n");
 			textLog.append("Data e hora no fuso " + timezoneMsg + ": " 
 				+ day + "/" + month + "/" + year + " " + hour + ":" + minute + ":" + second + "\n");
 		}
+		else {
+			textLog.append("\nResposta recebida com erros!\n");
+		}
+		textLog.append("CRC calculado (dec): " + crc8.getValue() + "\n");
+		textLog.append("CRC calculado (hex): " + hexCrc + "\n");
 	}
 }

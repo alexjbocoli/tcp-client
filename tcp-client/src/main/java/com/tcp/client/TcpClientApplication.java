@@ -111,6 +111,7 @@ public class TcpClientApplication {
 	    panelEnviar1.setLayout(new FlowLayout());
 	    JButton btEnviar1 = new JButton("Enviar", message);
 	    btEnviar1.setCursor(new Cursor(Cursor.HAND_CURSOR));
+	    btEnviar1.setPreferredSize(new Dimension(120, 30));
 	    panelEnviar1.add(btEnviar1);
 	    panel1.add(panelEnviar1);
 	        
@@ -146,6 +147,7 @@ public class TcpClientApplication {
 	    panelEnviar2.setLayout(new FlowLayout());
 	    JButton btEnviar2 = new JButton("Enviar", user);
 	    btEnviar2.setCursor(new Cursor(Cursor.HAND_CURSOR));
+	    btEnviar2.setPreferredSize(new Dimension(120, 30));
 	    panelEnviar2.add(btEnviar2);
 	    panel2.add(panelEnviar2);
 	    
@@ -169,6 +171,7 @@ public class TcpClientApplication {
 	    panelEnviar3.setLayout(new FlowLayout());
 	    JButton btEnviar3 = new JButton("Enviar", dateTime);
 	    btEnviar3.setCursor(new Cursor(Cursor.HAND_CURSOR));
+	    btEnviar3.setPreferredSize(new Dimension(120, 30));
 	    panelEnviar3.add(btEnviar3);
 	    panel3.add(panelEnviar3);
 	    

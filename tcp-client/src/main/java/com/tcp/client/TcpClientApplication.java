@@ -254,6 +254,7 @@ public class TcpClientApplication {
 		//client1.startConnection("127.0.0.1", 6666);
 		
 		textLog.append("Enviando mensagem de texto '" + textMsg + "'...\n");
+		
 	}
 
 }

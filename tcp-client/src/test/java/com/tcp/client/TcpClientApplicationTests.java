@@ -20,6 +20,7 @@ public class TcpClientApplicationTests {
 	void contextLoads() {
 	}*/
 	
+	
 	@Test
 	public void textMessage() throws UnknownHostException, IOException, ClassNotFoundException {
 		Client client1 = new Client();

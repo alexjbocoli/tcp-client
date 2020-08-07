@@ -20,7 +20,7 @@ public class TcpClientApplicationTests {
 	void contextLoads() {
 	}*/
 	
-	/*@Test
+	@Test
 	public void textMessage() throws UnknownHostException, IOException, ClassNotFoundException {
 		Client client1 = new Client();
 		client1.startConnection("127.0.0.1", 6666);
@@ -81,7 +81,7 @@ public class TcpClientApplicationTests {
 			System.out.println("Hex CRC: " + hexCrc);
 			System.out.println("ACK recebido: " + response);
 		}
-	}*/
+	}
 	
 	/*@Test
 	public void userMessage() throws UnknownHostException, IOException, ClassNotFoundException {
